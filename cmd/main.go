@@ -24,11 +24,15 @@ func main() {
 	uow := repository.NewSqlUnitOfWork(db)
 	userService := service.NewUserService(uow)
 	userHandler := handler.NewUserHandler(userService)
+	exerciseService := service.NewExerciseService(uow)
+	exerciseHandler := handler.NewExerciseHandler(exerciseService)
 
 	r := gin.Default()
 
 	r.POST("/register", userHandler.Register)
 	r.POST("/login", userHandler.Login)
+
+	r.POST("/audio/user/:user_id/phrase/:phrase_id", middleware.AuthMiddleware(), exerciseHandler.SubmitAudio)
 
 	// temporary, just for testing auth
 	r.GET("/hello", middleware.AuthMiddleware(), userHandler.Hello)

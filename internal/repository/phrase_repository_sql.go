@@ -17,7 +17,7 @@ func NewSqlPhraseRepository(db *sql.DB) PhraseRepository {
 	return &sqlPhraseRepository{db: db}
 }
 
-func (p *sqlPhraseRepository) GetPhraseById(ctx context.Context, id int) (*model.Phrase, error) {
+func (p *sqlPhraseRepository) GetById(ctx context.Context, id int) (*model.Phrase, error) {
 	executor := getExecutor(ctx, p.db)
 
 	query := "SELECT id, phrase, created_at, updated_at FROM phrases WHERE id = ?"

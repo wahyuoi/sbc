@@ -7,5 +7,5 @@ import (
 )
 
 type PhraseRepository interface {
-	GetPhraseById(ctx context.Context, id int) (*model.Phrase, error)
+	GetById(ctx context.Context, id int) (*model.Phrase, error)
 }

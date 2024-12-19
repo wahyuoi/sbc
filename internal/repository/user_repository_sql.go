@@ -54,3 +54,20 @@ func (r *sqlUserRepository) GetByEmail(ctx context.Context, email string) (*mode
 
 	return user, nil
 }
+
+func (r *sqlUserRepository) GetById(ctx context.Context, id int) (*model.User, error) {
+	executor := getExecutor(ctx, r.db)
+
+	user := &model.User{}
+	query := `SELECT id, email, password, created_at, updated_at FROM users WHERE id = ?`
+
+	err := executor.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Email, &user.Password, &user.CreatedAt, &user.UpdatedAt)
+	if err == sql.ErrNoRows {
+		return nil, errors.New("user not found")
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
