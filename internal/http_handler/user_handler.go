@@ -32,7 +32,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	// todo: do email and password validation
 	// currently, we skip as it is not the focus of this task.
 
-	if err := h.userService.Register(req.Email, req.Password); err != nil {
+	if err := h.userService.Register(c.Request.Context(), req.Email, req.Password); err != nil {
 		log.Println(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
 		return
@@ -51,7 +51,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 
 	// todo: do email validation
 
-	user, err := h.userService.Login(req.Email, req.Password)
+	user, err := h.userService.Login(c.Request.Context(), req.Email, req.Password)
 	if err != nil {
 		log.Println(err)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
@@ -61,7 +61,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"email":   user.Email,
 		"user_id": user.ID,
-		"exp":     time.Now().Add(time.Second * 24).Unix(),
+		"exp":     time.Now().Add(time.Hour * 24).Unix(),
 	})
 
 	tokenString, err := token.SignedString(config.GetJWTSecret())

@@ -21,8 +21,8 @@ func main() {
 	}
 	defer db.Close()
 
-	userRepo := repository.NewUserRepository(db)
-	userService := service.NewUserService(userRepo)
+	uow := repository.NewSqlUnitOfWork(db)
+	userService := service.NewUserService(uow)
 	userHandler := handler.NewUserHandler(userService)
 
 	r := gin.Default()
