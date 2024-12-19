@@ -5,9 +5,10 @@ import (
 	"log"
 
 	"github.com/wahyuoi/sbc/internal/config"
-	"github.com/wahyuoi/sbc/internal/handler"
+	handler "github.com/wahyuoi/sbc/internal/http_handler"
 	"github.com/wahyuoi/sbc/internal/middleware"
 	"github.com/wahyuoi/sbc/internal/repository"
+	"github.com/wahyuoi/sbc/internal/service"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
@@ -21,7 +22,8 @@ func main() {
 	defer db.Close()
 
 	userRepo := repository.NewUserRepository(db)
-	userHandler := handler.NewUserHandler(userRepo)
+	userService := service.NewUserService(userRepo)
+	userHandler := handler.NewUserHandler(userService)
 
 	r := gin.Default()
 
