@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"io"
 	"log"
 	"net/http"
@@ -15,13 +16,16 @@ import (
 
 type ExerciseHandler struct {
 	exerciseService service.ExerciseService
+	audioService    service.AudioService
 }
 
 func NewExerciseHandler(
 	exerciseService service.ExerciseService,
+	audioService service.AudioService,
 ) *ExerciseHandler {
 	return &ExerciseHandler{
 		exerciseService: exerciseService,
+		audioService:    audioService,
 	}
 }
 
@@ -78,11 +82,29 @@ func (h *ExerciseHandler) SubmitAudio(c *gin.Context) {
 	if err != nil {
 		log.Println(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to submit audio"})
-		// TODO: do we need to delete the audio file if we failed to record it in the database?
 		return
 	}
 
-	// TODO: convert audio file to wav
+	// Converting audio file to other format in background, so it won't block the response.
+	// We could do this because the requirement says that the converted audio file is only stored in the database.
+	// We could use a queue to do this, but for now we just do it in a goroutine.
+	go func() {
+		ctx := context.Background()
+		originalAudioBytes, err := h.exerciseService.GetAudio(ctx, userID, phraseID, model.AudioFormatTypeM4a)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		newAudioBytes, err := h.audioService.ConvertAudio(ctx, originalAudioBytes, model.AudioFormatTypeWav)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		err = h.exerciseService.SubmitAudio(ctx, userID, phraseID, newAudioBytes, model.AudioFormatTypeWav)
+		if err != nil {
+			log.Println(err)
+		}
+	}()
 
 	c.JSON(http.StatusCreated, gin.H{"message": "Audio submitted successfully"})
 }

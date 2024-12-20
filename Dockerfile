@@ -13,6 +13,7 @@ RUN go build -o main ./cmd/main.go
 # Stage 2: Create a minimal image with the built binary
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
+RUN apk --no-cache add ffmpeg
 WORKDIR /root/
 # Copy the binary from the builder stage
 COPY --from=builder /app/main .

@@ -16,7 +16,7 @@ func NewExerciseService(uow repository.UnitOfWork) ExerciseService {
 }
 
 func (s *ExerciseService) SubmitAudio(ctx context.Context, userID, phraseID int, audioBytes []byte, audioFormat model.AudioFormatType) error {
-	audioPath, err := s.uow.FileRepository().UploadAudio(ctx, audioBytes, audioFormat.String())
+	audioPath, err := s.uow.FileRepository().UploadAudio(ctx, audioBytes, audioFormat.GetFileExtension())
 	if err != nil {
 		return err
 	}

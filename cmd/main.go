@@ -25,8 +25,9 @@ func main() {
 	uow := repository.NewUnitOfWork(db, fileRepository)
 	userService := service.NewUserService(uow)
 	exerciseService := service.NewExerciseService(uow)
+	audioService := service.NewAudioService()
 	userHandler := handler.NewUserHandler(userService)
-	exerciseHandler := handler.NewExerciseHandler(exerciseService)
+	exerciseHandler := handler.NewExerciseHandler(exerciseService, audioService)
 
 	r := gin.Default()
 
