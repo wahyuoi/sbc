@@ -21,10 +21,11 @@ func main() {
 	}
 	defer db.Close()
 
-	uow := repository.NewSqlUnitOfWork(db)
+	fileRepository := repository.NewFileRepositoryLocal()
+	uow := repository.NewUnitOfWork(db, fileRepository)
 	userService := service.NewUserService(uow)
-	userHandler := handler.NewUserHandler(userService)
 	exerciseService := service.NewExerciseService(uow)
+	userHandler := handler.NewUserHandler(userService)
 	exerciseHandler := handler.NewExerciseHandler(exerciseService)
 
 	r := gin.Default()
@@ -33,6 +34,7 @@ func main() {
 	r.POST("/login", userHandler.Login)
 
 	r.POST("/audio/user/:user_id/phrase/:phrase_id", middleware.AuthMiddleware(), exerciseHandler.SubmitAudio)
+	r.GET("/audio/user/:user_id/phrase/:phrase_id/:format", middleware.AuthMiddleware(), exerciseHandler.GetAudio)
 
 	// temporary, just for testing auth
 	r.GET("/hello", middleware.AuthMiddleware(), userHandler.Hello)
