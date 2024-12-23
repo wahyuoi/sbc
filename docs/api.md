@@ -62,11 +62,6 @@ GET `/audio/user/:user_id/phrase/:phrase_id/:format`
 Example:
 
 ```bash
-# Download WAV format
-curl -X GET http://localhost/audio/user/1/phrase/1/wav \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..." \
-  --output audio.wav
-
 # Download M4A format
 curl -X GET http://localhost/audio/user/1/phrase/1/m4a \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..." \
@@ -74,12 +69,14 @@ curl -X GET http://localhost/audio/user/1/phrase/1/m4a \
 ```
 
 Response (200 OK):
-- Content-Type: audio/wav or audio/m4a
+- Content-Type: audio/mp4
 - Binary audio file data
 
 Supported formats:
-- `wav` - WAV format
 - `m4a` - M4A format
+
+Unsupported formats:
+- `wav` - WAV format. This format is only for internal use, and not supported for user download.
 
 ## Error Responses
 

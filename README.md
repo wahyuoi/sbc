@@ -42,7 +42,7 @@ docker compose --profile all up --build
 ## Default Credentials
 
 The service comes with a default user and 3 phrases:
-- User: (only if JWT_SECRET is set to `thisissecretkey`)
+- User:
   - Email: admin@example.com
   - Password: admin123
 - Phrases:
