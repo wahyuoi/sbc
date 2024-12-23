@@ -31,7 +31,7 @@ var audioProps = map[AudioFormatType]struct {
 		fileExtension: ".wav",
 		mimeType:      "audio/wav",
 		isForUpload:   false,
-		isForDownload: true,
+		isForDownload: false,
 		codec:         "pcm_s16le",
 		sampleRate:    44100,
 		channel:       2,

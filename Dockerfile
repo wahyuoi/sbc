@@ -17,5 +17,6 @@ RUN apk --no-cache add ffmpeg
 WORKDIR /root/
 # Copy the binary from the builder stage
 COPY --from=builder /app/main .
+COPY --from=builder /app/.env .
 EXPOSE 8080
 CMD ["./main"] 

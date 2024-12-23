@@ -28,7 +28,8 @@ Or copy the `.env.example` file and edit the values.
 
 1. Start the containers:
 ```
-docker compose up -d
+docker compose --profile all down -v # to start fresh
+docker compose --profile all up --build
 ```
 
 2. The service will be available at `http://localhost`.
@@ -49,3 +50,12 @@ The service comes with a default user and 3 phrases:
   - PhraseID 2: "SpeakBuddy is an online service that helps users acquire language abilities"
   - PhraseID 3: "We believe that the spoken language sends a message not to the brain, but to the heart"
 
+
+## Integration Tests
+
+To run the integration tests, use the following command:
+```
+docker compose --profile all down -v # to start fresh
+docker compose --profile db-only up -d --wait
+go test -v ./internal/integration/...
+```

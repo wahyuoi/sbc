@@ -2,17 +2,20 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/joho/godotenv"
 )
 
-func InitDB() string {
+func LoadEnv() {
 	err := godotenv.Load()
 	if err != nil {
-		fmt.Println("Error loading .env file")
+		log.Fatal("Error loading .env file", err)
 	}
+}
 
+func InitDB() string {
 	dbUser := os.Getenv("DB_USER")
 	dbPassword := os.Getenv("DB_PASSWORD")
 	dbHost := os.Getenv("DB_HOST")
@@ -27,4 +30,4 @@ func InitDB() string {
 
 func GetJWTSecret() []byte {
 	return []byte(os.Getenv("JWT_SECRET"))
-} 
+}

@@ -16,6 +16,8 @@ import (
 )
 
 func main() {
+	config.LoadEnv()
+
 	db, err := sql.Open("mysql", config.InitDB())
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
