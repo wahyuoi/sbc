@@ -47,3 +47,30 @@ func TestAudioService_ConvertAudio(t *testing.T) {
 		assert.Nil(t, outputAudio)
 	})
 }
+
+func BenchmarkAudioService_ConvertAudio(b *testing.B) {
+	service := service.NewAudioService()
+	ctx := context.Background()
+
+	file, err := os.Open("../../sample/ninety.m4a")
+	if err != nil {
+		b.Fatal(err)
+	}
+	defer file.Close()
+
+	inputAudio, err := io.ReadAll(file)
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		outputAudio, err := service.ConvertAudio(ctx, inputAudio, model.AudioFormatTypeWav)
+		if err != nil {
+			b.Fatal(err)
+		}
+		if outputAudio == nil {
+			b.Fatal("output audio is nil")
+		}
+	}
+}
