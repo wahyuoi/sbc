@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/wahyuoi/sbc/internal/common"
 	"github.com/wahyuoi/sbc/internal/model"
 )
 
@@ -26,6 +27,9 @@ func (p *sqlPhraseRepository) GetById(ctx context.Context, id int) (*model.Phras
 	var phrase model.Phrase
 	err := row.Scan(&phrase.ID, &phrase.Phrase, &phrase.CreatedAt, &phrase.UpdatedAt)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, common.ErrNotFound
+		}
 		return nil, err
 	}
 	return &phrase, nil

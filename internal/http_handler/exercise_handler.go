@@ -10,22 +10,27 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/wahyuoi/sbc/internal/common"
+	"github.com/wahyuoi/sbc/internal/event_handler"
 	"github.com/wahyuoi/sbc/internal/model"
 	"github.com/wahyuoi/sbc/internal/service"
 )
 
 type ExerciseHandler struct {
-	exerciseService service.ExerciseService
-	audioService    service.AudioService
+	exerciseService *service.ExerciseService
+	audioService    *service.AudioService
+	audioConverter  *event_handler.AudioConverter
 }
 
 func NewExerciseHandler(
-	exerciseService service.ExerciseService,
-	audioService service.AudioService,
+	exerciseService *service.ExerciseService,
+	audioService *service.AudioService,
+	audioConverter *event_handler.AudioConverter,
 ) *ExerciseHandler {
 	return &ExerciseHandler{
 		exerciseService: exerciseService,
 		audioService:    audioService,
+		audioConverter:  audioConverter,
 	}
 }
 
@@ -56,6 +61,7 @@ func (h *ExerciseHandler) SubmitAudio(c *gin.Context) {
 
 	// I think this is not the correct way to get the file format, as we could edit file extension manually.
 	// We should use the file header to get the file format, or use existing library like https://github.com/gabriel-vasile/mimetype
+	// But for now, we just do it this way to make it simple.
 	fileExt := filepath.Ext(audioFileHeader.Filename)
 	fileFormat := model.AudioFormatType(strings.TrimPrefix(fileExt, "."))
 	if fileFormat != model.AudioFormatTypeWav && fileFormat != model.AudioFormatTypeM4a {
@@ -63,6 +69,8 @@ func (h *ExerciseHandler) SubmitAudio(c *gin.Context) {
 		return
 	}
 
+	// todo: we also need to check the file size, and audio duration.
+	// options: using ffprobe (https://trac.ffmpeg.org/wiki/FFprobeTips) which comes with ffmpeg.
 	audioFile, err := audioFileHeader.Open()
 	if err != nil {
 		log.Println(err)
@@ -81,7 +89,8 @@ func (h *ExerciseHandler) SubmitAudio(c *gin.Context) {
 	err = h.exerciseService.SubmitAudio(c.Request.Context(), userID, phraseID, audioBytes, fileFormat)
 	if err != nil {
 		log.Println(err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to submit audio"})
+		status, message := common.ConvertErrorToHTTPStatus(err)
+		c.JSON(status, gin.H{"error": message})
 		return
 	}
 
@@ -89,18 +98,9 @@ func (h *ExerciseHandler) SubmitAudio(c *gin.Context) {
 	// We could do this because the requirement says that the converted audio file is only stored in the database.
 	// We could use a queue to do this, but for now we just do it in a goroutine.
 	go func() {
+		// using new context because the main context will be closed when the response is sent, and could cause the audio converter cancelled.
 		ctx := context.Background()
-		originalAudioBytes, err := h.exerciseService.GetAudio(ctx, userID, phraseID, model.AudioFormatTypeM4a)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		newAudioBytes, err := h.audioService.ConvertAudio(ctx, originalAudioBytes, model.AudioFormatTypeWav)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		err = h.exerciseService.SubmitAudio(ctx, userID, phraseID, newAudioBytes, model.AudioFormatTypeWav)
+		err := h.audioConverter.ConvertAudio(ctx, userID, phraseID, model.AudioFormatTypeM4a, model.AudioFormatTypeWav)
 		if err != nil {
 			log.Println(err)
 		}
@@ -136,8 +136,8 @@ func (h *ExerciseHandler) GetAudio(c *gin.Context) {
 	audio, err := h.exerciseService.GetAudio(c.Request.Context(), userID, phraseID, audioFormat)
 	if err != nil {
 		log.Println(err)
-		// TODO: handle record not found
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get audio"})
+		status, message := common.ConvertErrorToHTTPStatus(err)
+		c.JSON(status, gin.H{"error": message})
 		return
 	}
 

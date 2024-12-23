@@ -13,8 +13,8 @@ import (
 type AudioService struct {
 }
 
-func NewAudioService() AudioService {
-	return AudioService{}
+func NewAudioService() *AudioService {
+	return &AudioService{}
 }
 
 func (s *AudioService) ConvertAudio(ctx context.Context, audioBytes []byte, audioFormat model.AudioFormatType) ([]byte, error) {

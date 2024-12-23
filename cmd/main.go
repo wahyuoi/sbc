@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/wahyuoi/sbc/internal/config"
+	"github.com/wahyuoi/sbc/internal/event_handler"
 	handler "github.com/wahyuoi/sbc/internal/http_handler"
 	"github.com/wahyuoi/sbc/internal/middleware"
 	"github.com/wahyuoi/sbc/internal/repository"
@@ -26,8 +27,9 @@ func main() {
 	userService := service.NewUserService(uow)
 	exerciseService := service.NewExerciseService(uow)
 	audioService := service.NewAudioService()
+	audioConverter := event_handler.NewAudioConverter(audioService, exerciseService)
 	userHandler := handler.NewUserHandler(userService)
-	exerciseHandler := handler.NewExerciseHandler(exerciseService, audioService)
+	exerciseHandler := handler.NewExerciseHandler(exerciseService, audioService, audioConverter)
 
 	r := gin.Default()
 
@@ -36,9 +38,6 @@ func main() {
 
 	r.POST("/audio/user/:user_id/phrase/:phrase_id", middleware.AuthMiddleware(), exerciseHandler.SubmitAudio)
 	r.GET("/audio/user/:user_id/phrase/:phrase_id/:format", middleware.AuthMiddleware(), exerciseHandler.GetAudio)
-
-	// temporary, just for testing auth
-	r.GET("/hello", middleware.AuthMiddleware(), userHandler.Hello)
 
 	if err := r.Run(":8080"); err != nil {
 		log.Fatal("Failed to start server:", err)

@@ -6,6 +6,8 @@ import (
 	"fmt"
 )
 
+// UnitOfWork is a wrapper around the repositories.
+// It provides a way to execute transactions on multiple repositories.
 type UnitOfWork interface {
 	WithTransaction(ctx context.Context, fn func(ctx context.Context) error) error
 	UserRepository() UserRepository

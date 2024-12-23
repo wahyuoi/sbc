@@ -11,8 +11,8 @@ type ExerciseService struct {
 	uow repository.UnitOfWork
 }
 
-func NewExerciseService(uow repository.UnitOfWork) ExerciseService {
-	return ExerciseService{uow: uow}
+func NewExerciseService(uow repository.UnitOfWork) *ExerciseService {
+	return &ExerciseService{uow: uow}
 }
 
 func (s *ExerciseService) SubmitAudio(ctx context.Context, userID, phraseID int, audioBytes []byte, audioFormat model.AudioFormatType) error {

@@ -3,8 +3,9 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"errors"
 
+	"github.com/go-sql-driver/mysql"
+	"github.com/wahyuoi/sbc/internal/common"
 	"github.com/wahyuoi/sbc/internal/model"
 )
 
@@ -26,6 +27,13 @@ func (r *sqlUserRepository) Create(ctx context.Context, user *model.User) error 
 
 	result, err := executor.ExecContext(ctx, query, user.Email, user.Password)
 	if err != nil {
+		mysqlErr, ok := err.(*mysql.MySQLError)
+		if !ok {
+			return err
+		}
+		if mysqlErr.Number == 1062 {
+			return common.ErrEmailAlreadyExists
+		}
 		return err
 	}
 
@@ -45,10 +53,10 @@ func (r *sqlUserRepository) GetByEmail(ctx context.Context, email string) (*mode
 	query := `SELECT id, email, password, created_at, updated_at FROM users WHERE email = ?`
 
 	err := executor.QueryRowContext(ctx, query, email).Scan(&user.ID, &user.Email, &user.Password, &user.CreatedAt, &user.UpdatedAt)
-	if err == sql.ErrNoRows {
-		return nil, errors.New("user not found")
-	}
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, common.ErrNotFound
+		}
 		return nil, err
 	}
 
@@ -62,10 +70,10 @@ func (r *sqlUserRepository) GetById(ctx context.Context, id int) (*model.User, e
 	query := `SELECT id, email, password, created_at, updated_at FROM users WHERE id = ?`
 
 	err := executor.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Email, &user.Password, &user.CreatedAt, &user.UpdatedAt)
-	if err == sql.ErrNoRows {
-		return nil, errors.New("user not found")
-	}
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, common.ErrNotFound
+		}
 		return nil, err
 	}
 
