@@ -33,7 +33,7 @@ func (s *ExerciseService) SubmitAudio(ctx context.Context, userID, phraseID int,
 			return err
 		}
 
-		return s.uow.ExerciseRepository().Create(ctx, &model.Exercise{
+		return s.uow.ExerciseRepository().Upsert(ctx, &model.Exercise{
 			ID:          userID,
 			PhraseID:    phraseID,
 			UserID:      userID,

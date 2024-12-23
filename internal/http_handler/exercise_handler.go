@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/wahyuoi/sbc/internal/common"
@@ -63,8 +62,14 @@ func (h *ExerciseHandler) SubmitAudio(c *gin.Context) {
 	// We should use the file header to get the file format, or use existing library like https://github.com/gabriel-vasile/mimetype
 	// But for now, we just do it this way to make it simple.
 	fileExt := filepath.Ext(audioFileHeader.Filename)
-	fileFormat := model.AudioFormatType(strings.TrimPrefix(fileExt, "."))
-	if fileFormat != model.AudioFormatTypeWav && fileFormat != model.AudioFormatTypeM4a {
+	fileFormat, err := model.GetAudioFormatType(fileExt)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid audio file format"})
+		return
+	}
+	// This is to limit the file format for upload to only M4A.
+	// If we want to support more file format, we can add it to audioProps in model/audio.go.
+	if !fileFormat.IsForUpload() {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid audio file format"})
 		return
 	}
@@ -127,8 +132,12 @@ func (h *ExerciseHandler) GetAudio(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid phrase ID"})
 		return
 	}
-	audioFormat := model.AudioFormatType(c.Param("format"))
-	if audioFormat != model.AudioFormatTypeWav && audioFormat != model.AudioFormatTypeM4a {
+	audioFormat, err := model.GetAudioFormatType(c.Param("format"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid audio file format"})
+		return
+	}
+	if !audioFormat.IsForDownload() {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid audio file format"})
 		return
 	}

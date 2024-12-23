@@ -21,7 +21,7 @@ func (s *AudioService) ConvertAudio(ctx context.Context, audioBytes []byte, audi
 
 	filename := uuid.New().String()
 
-	// Create temporary input file
+	// Create temporary input file with random filename
 	inputFile, err := os.CreateTemp("", fmt.Sprintf("%s*.m4a", filename))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp input file: %w", err)
@@ -34,7 +34,7 @@ func (s *AudioService) ConvertAudio(ctx context.Context, audioBytes []byte, audi
 	}
 	inputFile.Close()
 
-	// Create temporary output file
+	// Create temporary output file with random filename
 	outputFile, err := os.CreateTemp("", fmt.Sprintf("%s*.wav", filename))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp output file: %w", err)
@@ -45,9 +45,9 @@ func (s *AudioService) ConvertAudio(ctx context.Context, audioBytes []byte, audi
 	// Convert audio using	ffmpeg command
 	cmd := exec.CommandContext(ctx, "ffmpeg",
 		"-i", inputFile.Name(),
-		"-acodec", "pcm_s16le", // WAV codec
-		"-ar", "44100", // Sample rate
-		"-ac", "2", // Mono channel
+		"-acodec", audioFormat.GetCodec(),
+		"-ar", fmt.Sprintf("%d", audioFormat.GetSampleRate()),
+		"-ac", fmt.Sprintf("%d", audioFormat.GetChannel()),
 		"-y", outputFile.Name()) // Overwrite existing file
 
 	if err := cmd.Run(); err != nil {

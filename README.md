@@ -41,7 +41,7 @@ docker compose up -d
 ## Default Credentials
 
 The service comes with a default user and 3 phrases:
-- User:
+- User: (only if JWT_SECRET is set to `thisissecretkey`)
   - Email: admin@example.com
   - Password: admin123
 - Phrases:

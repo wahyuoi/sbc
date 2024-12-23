@@ -51,4 +51,4 @@ func (s *UserService) GetByEmail(ctx context.Context, email string) (*model.User
 
 // TODO: if we implement the DeleteUser, we need to make sure that it also delete the exercises record related to the user.
 // In this case, transaction using unit of work will be useful.
-// Might also need to delete the audio file related to the exercises.
+// We may also need to delete the audio file related to the exercises.

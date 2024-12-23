@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -72,5 +74,47 @@ func BenchmarkAudioService_ConvertAudio(b *testing.B) {
 		if outputAudio == nil {
 			b.Fatal("output audio is nil")
 		}
+	}
+}
+
+func BenchmarkAudioService_ConvertAudio_AllSamples(b *testing.B) {
+	service := service.NewAudioService()
+	ctx := context.Background()
+
+	// Read all .m4a files from sample directory
+	files, err := os.ReadDir("../../sample")
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	for _, file := range files {
+		if !strings.HasSuffix(file.Name(), ".m4a") {
+			continue
+		}
+
+		b.Run(file.Name(), func(b *testing.B) {
+			filePath := filepath.Join("../../sample", file.Name())
+			f, err := os.Open(filePath)
+			if err != nil {
+				b.Fatal(err)
+			}
+			defer f.Close()
+
+			inputAudio, err := io.ReadAll(f)
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				outputAudio, err := service.ConvertAudio(ctx, inputAudio, model.AudioFormatTypeWav)
+				if err != nil {
+					b.Fatal(err)
+				}
+				if outputAudio == nil {
+					b.Fatal("output audio is nil")
+				}
+			}
+		})
 	}
 }
